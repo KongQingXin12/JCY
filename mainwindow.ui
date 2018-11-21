@@ -43,10 +43,10 @@
    <widget class="QDockWidget" name="Graph_dis">
     <property name="geometry">
      <rect>
-      <x>30</x>
-      <y>20</y>
-      <width>401</width>
-      <height>381</height>
+      <x>10</x>
+      <y>0</y>
+      <width>231</width>
+      <height>161</height>
      </rect>
     </property>
     <property name="floating">

@@ -14,6 +14,7 @@
 #include <QtSerialPort/QSerialPortInfo>
 #include <QTime>
 #include<QtWidgets/QTimeEdit>
+#include <QDateTime>
 #include "qdatetime.h"
 
 namespace Ui {
@@ -41,6 +42,8 @@ private slots:
 
     bool warrning();
 
+    void dispose_16_data(QVector<QString> &data,QString tempdata);
+
 private:
     Ui::PortDialog *ui;
     QSerialPort *serial;
@@ -48,7 +51,7 @@ private:
     QString Open_filename;
     QString str_time;
     QDateTime time1=QDateTime::currentDateTime();
-
+    QDir *dir=new QDir();
     QFile *file=new QFile();
 };
 

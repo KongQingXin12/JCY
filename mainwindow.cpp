@@ -22,22 +22,21 @@ void MainWindow::on_action_triggered()
     portdialog=new PortDialog(this);
     portdialog->show();
 }
-
+// 画图代码
 void MainWindow::on_create_graph_clicked()
 {
     if(ui->create_graph->text()==QString::fromLocal8Bit("创建图表"))
     {
+        series->clear();
         series->append(0,5);
         series->append(4,10);
         series->append(8,6);
         *series<<QPointF(13,5)<<QPointF(17,6)<<QPointF(20,2);
 
-
         chart->legend()->hide();
         chart->addSeries(series);
-        chart->createDefaultAxes();
+        chart->createDefaultAxes();//图表会自动将之前的坐标轴清除并新建坐标轴
         chart->setTitle("demo");
-
 
         chartview->setRenderHint(QPainter::Antialiasing);
         chartview->setWindowTitle("demo");
@@ -53,10 +52,12 @@ void MainWindow::on_create_graph_clicked()
     else
     {
         ui->Graph_dis->hide();
-        series->clear();
+        chart->removeSeries(series);
         ui->create_graph->setText(QString::fromLocal8Bit("创建图表"));
     }
 
 }
+
+
 
 

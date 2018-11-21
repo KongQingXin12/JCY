@@ -126,14 +126,6 @@ void PortDialog::on_open_serial_clicked()
 
 void PortDialog::Read_Data()
 {
-
-
-//    QDir tempdir(Open_filename);
-//    tempdir.mkdir("test");
-//    qDebug()<<tempdir.absoluteFilePath("test");
-
-    //qDebug()<<Save_filename;
-
    QFile file(Save_filename);
     if(!file.open(QIODevice::WriteOnly|QIODevice::Append))
     {
@@ -142,17 +134,35 @@ void PortDialog::Read_Data()
     str_time=time1.toString("yyyy-MM-dd hh:mm:ss");
     QByteArray buf;
     buf = serial->readAll();
+    QVector<QString> data;
+    dispose_16_data(data,buf.toHex());
     ui->Receive_Window->document()->setMaximumBlockCount(100);
     if(!buf.isEmpty())
     {
+        QString te;
+        for(int i=0;i<4;i++ )
+        {
+            te+=data[i];
+            if(i<3)
+               te+=" ";
+        }
         QTextStream out(&file);
         qDebug()<<QString::fromLocal8Bit("接收数据成功");
-        out<<str_time<<" "<<QString::fromLocal8Bit(buf)<<"\n";
-        QString str=ui->Receive_Window->toPlainText();
-        str+=QString::fromLocal8Bit(buf);
-        ui->Receive_Window->clear();
-        ui->Receive_Window->append(str);
-        //file.close();
+        out<<str_time+" "+QString::fromLocal8Bit(buf)+te<<"\r\n";
+        qDebug()<<buf.toHex();
+        if(data[1]==tr("06"))
+        {
+            ui->Receive_Window->append(buf.toHex());
+        }
+        else
+        {
+            ui->Receive_Window->append(QString::fromLocal8Bit("随动角度获取数据异常"));
+        }
+
+//        QString str=ui->Receive_Window->toPlainText();
+//        str+=QString::fromLocal8Bit(buf);
+//        ui->Receive_Window->clear();
+//        ui->Receive_Window->append(str);
     }
     else
     {
@@ -175,7 +185,8 @@ void PortDialog::on_SendDataButton_clicked()
 
 void PortDialog::on_save_receive_data_clicked()
 {
-    Open_filename=QFileDialog::getExistingDirectory(this,QString::fromLocal8Bit("保存串口数据"),"/home",QFileDialog::ShowDirsOnly|QFileDialog::DontResolveSymlinks);
+    QString temppath=dir->currentPath();
+    Open_filename=QFileDialog::getExistingDirectory(this,QString::fromLocal8Bit("保存串口数据"),temppath,QFileDialog::ShowDirsOnly|QFileDialog::DontResolveSymlinks);
     Open_filename+="/";
 }
 
@@ -188,3 +199,13 @@ bool PortDialog::warrning()
     }
     return true;
 }
+
+void PortDialog::dispose_16_data(QVector<QString> &data, QString tempdata)
+{
+    data.push_back(tempdata.mid(0,4));
+    data.push_back(tempdata.mid(4,2));
+    data.push_back(tempdata.mid(6,8));
+    data.push_back(tempdata.mid(14));
+}
+
+
