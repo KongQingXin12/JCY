@@ -7,23 +7,7 @@ PortDialog::PortDialog(QWidget *parent) :
 {
     ui->setupUi(this);
     //查找可用串口
-
-    foreach (const  QSerialPortInfo &info,QSerialPortInfo::availablePorts())
-        {
-            QSerialPort serial;
-            serial.setPort(info);
-            auto a=info.description();
-            qDebug()<<a;
-            if (a==QString::fromLocal8Bit("蓝牙链接上的标准串行"))
-            {
-                continue;
-            }
-            else
-            {
-                ui->PortBox->addItem(serial.portName());
-                serial.close();
-            }
-        }
+    Search_Serial_Port();
     //设置波特率下拉菜单默认显示第三项
     //ui->BaudBox->setCurrentIndex(3);
     //关闭发送按钮使能
@@ -126,99 +110,16 @@ void PortDialog::on_open_serial_clicked()
 void PortDialog::Read_Data()
 {
     buf += serial->readAll();
-	qDebug() << buf;
-	qDebug() << buf.at(0);
+    //qDebug() << buf;
+    //qDebug() << buf.at(0);
 	//创建数据存储文件
-
-	QFile file(Save_filename);
-
-	if(!file.open(QIODevice::WriteOnly|QIODevice::Append))
-    {
-       file.close();
-    }
     str_time=time1.toString("yyyy-MM-dd hh:mm:ss");
 	//接收数据
 	//QByteArray buf;
     //buf = serial->readAll();
-    qDebug()<<buf;
-    qDebug()<<buf.size();
-    if(buf.size()>=8)
-    {
-        for(int i=0;i<buf.size();i++)
-        {
-            if(buf[i]=='\x55')
-            {
-                step=1;
-            }
-            else if(buf[i]=='\xaa')
-            {
-                step=2;
-            }
-            else if(step==2)
-            {
-                switch (buf[i])
-                {
-                case '\x06':
-                    step=3;
-                    break;
-                }
-            }
-            else if(step==3)
-            {
-				char te = '\x00';
-
-                for(int j=i;j<i+4;j++)
-                {
-                    te+=buf[j];
-                }
-                te=te&'\xff';
-                Check+=te;
-                i+=3;
-                step=4;
-            }
-            else if(step==4)
-            {
-                erc+=buf[i];
-                step++;
-				if (step == 5)
-				{
-					if (data_Check(Check, erc))
-					{
-						string ss = Check.toStdString();
-						int a = 0;
-						for (int i = 0; i < ss.length(); i++)
-						{
-							a += ss[i];
-						}
-						ui->Receive_Window->clear();
-						ui->Receive_Window->append(QString::fromStdString(to_string(a)));
-                        ui->dis_num_sdj->display(a);
-						ui->Receive_Window->append(QString::fromLocal8Bit("校验成功，数据合格"));
-						QTextStream in(&file);
-						in << str_time + " " + "55aa" +" "<< Check.toHex() << " " + erc.toHex() << "\r\n";
-						file.close();
-					}
-					else
-					{
-						ui->Receive_Window->clear();
-						ui->Receive_Window->append(QString::fromLocal8Bit("校验失败"));
-					}
-					if (buf.size() == 8)
-						buf.clear();
-					else
-						buf = buf.mid(i);
-					step = 0;
-					Check.clear();
-					erc.clear();
-
-					break;
-				}
-
-            }
-        }
-    }
-
-
+    //qDebug()<<buf;
+    //qDebug()<<buf.size();
+    Dispose_buf_data();
 }
 
 void PortDialog::on_ClearDataButton_clicked()
@@ -265,19 +166,140 @@ bool PortDialog::data_Check(QByteArray data, QByteArray erc)
     return true;
 }
 
-QString PortDialog::ByteArrayToHexString(QByteArray data)
+void PortDialog::Search_Serial_Port()
 {
-	QString ret(data.toHex().toUpper());
-	int len = ret.length() / 2;
-	qDebug() << len;
-	for (int i = 1; i < len; i++)
-	{
-		qDebug() << i;
-		ret.insert(2 * i + i - 1, " ");
-	}
-
-	return ret;
+    foreach (const  QSerialPortInfo &info,QSerialPortInfo::availablePorts())
+        {
+            QSerialPort serial;
+            serial.setPort(info);
+            auto a=info.description();
+            qDebug()<<a;
+            if (a==QString::fromLocal8Bit("蓝牙链接上的标准串行"))
+            {
+                continue;
+            }
+            else
+            {
+                ui->PortBox->addItem(serial.portName());
+                serial.close();
+            }
+    }
 }
+
+void PortDialog::Dispose_buf_data()
+{
+    QFile file(Save_filename);
+
+    if(!file.open(QIODevice::WriteOnly|QIODevice::Append))
+    {
+       file.close();
+    }
+    if(buf.size()>=16)
+    {
+        for(int i=0;i<buf.size();i++)
+        {
+            if(buf[i]=='\x55')
+            {
+                step=1;
+            }
+            else if(buf[i]=='\xaa')
+            {
+                step=2;
+            }
+            else if(step==2)
+            {
+                switch (buf[i])
+                {
+                case '\x06':
+                    step=3;
+                    break;
+                }
+            }
+            else if(step==3)
+            {
+                while (data.size()<4)
+                {
+                    data += buf[i];
+                    te+=buf[i];
+                    i++;
+                }
+                if(data.size()==4)
+                {
+                    te += '\x06';
+                    te=te&'\xff';
+                    Check+=te;
+                    step=4;
+                    te='\x00';
+                    i--;
+                }
+            }
+            else if(step==4)
+            {
+                erc+=buf[i];
+                step++;
+                if (step == 5)
+                {
+                    if (data_Check(Check, erc))
+                    {
+                        string ss = data.toHex().toStdString();
+                        long long a = 0;
+                        for (auto i = ss.rbegin(); i !=ss.rend(); i++)
+                        {
+                            int n = distance(ss.rbegin(), i);
+                            if (*i >= 'a'&&*i <= 'f')
+                            {
+                                a += pow(16, n)*(*i - 'a' + 10);
+                            }
+                            else
+                            {
+                                a += pow(16, n)*(*i - '0');
+                            }
+                        }
+                        data.clear();
+                        ss=to_string(a);
+                        data_number=QString::fromStdString(ss);
+                        //显示处理结果
+                        ui->Receive_Window->clear();
+                        ui->Receive_Window->append(QString::fromStdString(to_string(a)));
+                        ui->Receive_Window->append(QString::fromLocal8Bit("校验成功，数据合格"));
+                        //LCD显示处理结果-整数
+                        ui->dis_num_sdj->setPalette(Qt::red);
+                        ui->dis_num_sdj->display(data_number);
+                        //LCD显示处理结果-角度
+                        float angl;
+                        if(a<=61440)
+                        {
+                            angl=(float)a*12/4096;
+                            ui->dis_ang_sdj->display(QString("%1").arg(angl));
+                        }
+                        QTextStream in(&file);
+                        in << str_time + " " + "55aa" +" "<< a << " " + erc.toHex() << "\r\n";
+                        file.close();
+                    }
+                    else
+                    {
+                        if(data.size()==4)
+                            data.clear();
+                        ui->Receive_Window->clear();
+                        ui->Receive_Window->append(QString::fromLocal8Bit("校验失败"));
+                    }
+                    if (buf.size() == 8)
+                        buf.clear();
+                    else
+                        buf = buf.mid(i);
+                    step = 0;
+                    Check.clear();
+                    erc.clear();
+                    break;
+                }
+
+            }
+        }
+    }
+
+}
+
+
 
 
 

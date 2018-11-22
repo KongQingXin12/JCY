@@ -18,6 +18,9 @@
 #include "qdatetime.h"
 #include <iostream>
 #include <qtemporaryfile.h>
+#include <Dbt.h>
+#include <Windows.h>
+#include <QFloat16>
 using namespace std;
 
 namespace Ui {
@@ -47,11 +50,17 @@ private slots:
 
     bool data_Check(QByteArray data,QByteArray erc);
 
-	QString ByteArrayToHexString(QByteArray data);
+    void Search_Serial_Port();
 
+    void Dispose_buf_data();
 
 private:
     Ui::PortDialog *ui;
+    //需要清零
+        QByteArray buf,Check,erc,data;
+        int step=0;
+        char te='\x00';
+    //不需要清零
     QSerialPort *serial;
     QString Save_filename;
     QString Open_filename;
@@ -59,12 +68,10 @@ private:
     QDateTime time1=QDateTime::currentDateTime();
     QDir *dir=new QDir();
     QFile *file=new QFile();
-    QString *receive_data=new QString();
-    QString te;
-	QString sign;
-	QString data;
-    int step=0;
-    QByteArray buf,Check,erc;
+    QString data_number;
+
+
+
 
 };
 
