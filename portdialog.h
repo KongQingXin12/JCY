@@ -16,6 +16,9 @@
 #include<QtWidgets/QTimeEdit>
 #include <QDateTime>
 #include "qdatetime.h"
+#include <iostream>
+#include <qtemporaryfile.h>
+using namespace std;
 
 namespace Ui {
 class PortDialog;
@@ -42,7 +45,10 @@ private slots:
 
     bool warrning();
 
-    void dispose_16_data(QVector<QString> &data,QString tempdata);
+    bool data_Check(QByteArray data,QByteArray erc);
+
+	QString ByteArrayToHexString(QByteArray data);
+
 
 private:
     Ui::PortDialog *ui;
@@ -53,6 +59,13 @@ private:
     QDateTime time1=QDateTime::currentDateTime();
     QDir *dir=new QDir();
     QFile *file=new QFile();
+    QString *receive_data=new QString();
+    QString te;
+	QString sign;
+	QString data;
+    int step=0;
+    QByteArray buf,Check,erc;
+
 };
 
 #endif // PORTDIALOG_H

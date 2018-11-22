@@ -29,7 +29,7 @@ PortDialog::PortDialog(QWidget *parent) :
     //关闭发送按钮使能
     ui->SendDataButton->setEnabled(false);
     qDebug()<<QString::fromLocal8Bit("界面设定成功");
-     qDebug()<<QString::fromLocal8Bit("搜寻串口成功");
+    qDebug()<<QString::fromLocal8Bit("搜寻串口成功");
 }
 
 PortDialog::~PortDialog()
@@ -58,8 +58,7 @@ void PortDialog::on_open_serial_clicked()
 		
 		switch (ui->BitBox->currentIndex())
 		{
-        case 8:
-
+        case 0:
             serial->setDataBits(QSerialPort::Data8);
 			qDebug() << QString::fromLocal8Bit("设置数据位成功");
 			break;
@@ -126,51 +125,100 @@ void PortDialog::on_open_serial_clicked()
 
 void PortDialog::Read_Data()
 {
-   QFile file(Save_filename);
-    if(!file.open(QIODevice::WriteOnly|QIODevice::Append))
+    buf += serial->readAll();
+	qDebug() << buf;
+	qDebug() << buf.at(0);
+	//创建数据存储文件
+
+	QFile file(Save_filename);
+
+	if(!file.open(QIODevice::WriteOnly|QIODevice::Append))
     {
        file.close();
     }
     str_time=time1.toString("yyyy-MM-dd hh:mm:ss");
-    QByteArray buf;
-    buf = serial->readAll();
-    QVector<QString> data;
-    dispose_16_data(data,buf.toHex());
-    ui->Receive_Window->document()->setMaximumBlockCount(100);
-    if(!buf.isEmpty())
+	//接收数据
+	//QByteArray buf;
+    //buf = serial->readAll();
+    qDebug()<<buf;
+    qDebug()<<buf.size();
+    if(buf.size()>=8)
     {
-        QString te;
-        for(int i=0;i<4;i++ )
+        for(int i=0;i<buf.size();i++)
         {
-            te+=data[i];
-            if(i<3)
-               te+=" ";
-        }
-        QTextStream out(&file);
-        qDebug()<<QString::fromLocal8Bit("接收数据成功");
-        out<<str_time+" "+QString::fromLocal8Bit(buf)+te<<"\r\n";
-        qDebug()<<buf.toHex();
-        if(data[1]==tr("06"))
-        {
-            ui->Receive_Window->append(buf.toHex());
-        }
-        else
-        {
-            ui->Receive_Window->append(QString::fromLocal8Bit("随动角度获取数据异常"));
-        }
+            if(buf[i]=='\x55')
+            {
+                step=1;
+            }
+            else if(buf[i]=='\xaa')
+            {
+                step=2;
+            }
+            else if(step==2)
+            {
+                switch (buf[i])
+                {
+                case '\x06':
+                    step=3;
+                    break;
+                }
+            }
+            else if(step==3)
+            {
+				char te = '\x00';
 
-//        QString str=ui->Receive_Window->toPlainText();
-//        str+=QString::fromLocal8Bit(buf);
-//        ui->Receive_Window->clear();
-//        ui->Receive_Window->append(str);
+                for(int j=i;j<i+4;j++)
+                {
+                    te+=buf[j];
+                }
+                te=te&'\xff';
+                Check+=te;
+                i+=3;
+                step=4;
+            }
+            else if(step==4)
+            {
+                erc+=buf[i];
+                step++;
+				if (step == 5)
+				{
+					if (data_Check(Check, erc))
+					{
+						string ss = Check.toStdString();
+						int a = 0;
+						for (int i = 0; i < ss.length(); i++)
+						{
+							a += ss[i];
+						}
+						ui->Receive_Window->clear();
+						ui->Receive_Window->append(QString::fromStdString(to_string(a)));
+                        ui->dis_num_sdj->display(a);
+						ui->Receive_Window->append(QString::fromLocal8Bit("校验成功，数据合格"));
+						QTextStream in(&file);
+						in << str_time + " " + "55aa" +" "<< Check.toHex() << " " + erc.toHex() << "\r\n";
+						file.close();
+					}
+					else
+					{
+						ui->Receive_Window->clear();
+						ui->Receive_Window->append(QString::fromLocal8Bit("校验失败"));
+					}
+					if (buf.size() == 8)
+						buf.clear();
+					else
+						buf = buf.mid(i);
+					step = 0;
+					Check.clear();
+					erc.clear();
+
+					break;
+				}
+
+            }
+        }
     }
-    else
-    {
-        QTextStream out(&file);
-        out<<str_time<<" "<<QString::fromLocal8Bit("串口无数据");
-    }
-    time1=QDateTime::currentDateTime();
-   buf.clear();
+
+
 }
 
 void PortDialog::on_ClearDataButton_clicked()
@@ -186,6 +234,7 @@ void PortDialog::on_SendDataButton_clicked()
 void PortDialog::on_save_receive_data_clicked()
 {
     QString temppath=dir->currentPath();
+	qDebug() << temppath;
     Open_filename=QFileDialog::getExistingDirectory(this,QString::fromLocal8Bit("保存串口数据"),temppath,QFileDialog::ShowDirsOnly|QFileDialog::DontResolveSymlinks);
     Open_filename+="/";
 }
@@ -200,12 +249,36 @@ bool PortDialog::warrning()
     return true;
 }
 
-void PortDialog::dispose_16_data(QVector<QString> &data, QString tempdata)
+bool PortDialog::data_Check(QByteArray data, QByteArray erc)
 {
-    data.push_back(tempdata.mid(0,4));
-    data.push_back(tempdata.mid(4,2));
-    data.push_back(tempdata.mid(6,8));
-    data.push_back(tempdata.mid(14));
+    QString d=data.toHex();
+    QString e=erc.toHex();
+    auto i=d.rbegin();
+    auto j=e.rbegin();
+    for(;j!=e.rend();i++,j++)
+    {
+        if(*i!=*j)
+        {
+            return false;
+        }
+    }
+    return true;
 }
+
+QString PortDialog::ByteArrayToHexString(QByteArray data)
+{
+	QString ret(data.toHex().toUpper());
+	int len = ret.length() / 2;
+	qDebug() << len;
+	for (int i = 1; i < len; i++)
+	{
+		qDebug() << i;
+		ret.insert(2 * i + i - 1, " ");
+	}
+
+	return ret;
+}
+
+
 
 
