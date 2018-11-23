@@ -14,7 +14,7 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <widget class="QPushButton" name="create_graph">
+   <widget class="QPushButton" name="dis_graph_06">
     <property name="geometry">
      <rect>
       <x>670</x>
@@ -27,7 +27,7 @@
      <string>创建图表</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="pushButton_2">
+   <widget class="QPushButton" name="dis_polar">
     <property name="geometry">
      <rect>
       <x>670</x>
@@ -37,22 +37,8 @@
      </rect>
     </property>
     <property name="text">
-     <string>PushButton</string>
+     <string>创建极坐标</string>
     </property>
-   </widget>
-   <widget class="QDockWidget" name="Graph_dis">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>0</y>
-      <width>231</width>
-      <height>161</height>
-     </rect>
-    </property>
-    <property name="floating">
-     <bool>true</bool>
-    </property>
-    <widget class="QWidget" name="dockWidgetContents"/>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menuBar">

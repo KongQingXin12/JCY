@@ -27,11 +27,16 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
         main.cpp \
         mainwindow.cpp \
-    portdialog.cpp
+    portdialog.cpp \
+    polar.cpp \
+    polar.cpp \
+    graph_06.cpp
 
 HEADERS += \
         mainwindow.h \
-    portdialog.h
+    portdialog.h \
+    polar.h \
+    graph_06.h
 
 FORMS += \
         mainwindow.ui \
