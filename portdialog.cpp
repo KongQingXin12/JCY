@@ -2,7 +2,7 @@
 #include "ui_portdialog.h"
 
 PortDialog::PortDialog(QWidget *parent) :
-    QDialog(parent),
+    QDialog(parent,Qt::WindowTitleHint|Qt::CustomizeWindowHint),
     ui(new Ui::PortDialog)
 {
     ui->setupUi(this);
@@ -10,6 +10,8 @@ PortDialog::PortDialog(QWidget *parent) :
     Search_Serial_Port();
     //设置波特率下拉菜单默认显示第三项
     //ui->BaudBox->setCurrentIndex(3);
+    ui->dis_num_sdj->setPalette(Qt::white);
+    ui->dis_ang_sdj->setPalette(Qt::white);
     //关闭发送按钮使能
     ui->SendDataButton->setEnabled(false);
     qDebug()<<QString::fromLocal8Bit("界面设定成功");
@@ -168,23 +170,24 @@ bool PortDialog::data_Check(QByteArray data, QByteArray erc)
 
 void PortDialog::Search_Serial_Port()
 {
-    foreach (const  QSerialPortInfo &info,QSerialPortInfo::availablePorts())
-        {
-            QSerialPort serial;
-            serial.setPort(info);
-            auto a=info.description();
-            qDebug()<<a;
-            if (a==QString::fromLocal8Bit("蓝牙链接上的标准串行"))
-            {
-                continue;
-            }
-            else
-            {
-                ui->PortBox->addItem(serial.portName());
-                serial.close();
-            }
-    }
+	foreach(const  QSerialPortInfo &info, QSerialPortInfo::availablePorts())
+	{
+		QSerialPort serial;
+		serial.setPort(info);
+		auto a = info.description();
+		qDebug() << a;
+		if (a == QString::fromLocal8Bit("蓝牙链接上的标准串行"))
+		{
+			continue;
+		}
+		else
+		{
+			ui->PortBox->addItem(serial.portName());
+			serial.close();
+		}
+	}
 }
+
 
 void PortDialog::Dispose_buf_data()
 {
@@ -263,15 +266,20 @@ void PortDialog::Dispose_buf_data()
                         ui->Receive_Window->append(QString::fromStdString(to_string(a)));
                         ui->Receive_Window->append(QString::fromLocal8Bit("校验成功，数据合格"));
                         //LCD显示处理结果-整数
-                        ui->dis_num_sdj->setPalette(Qt::red);
                         ui->dis_num_sdj->display(data_number);
+                        emit Send_Data_To_MainWindow(data_number);
                         //LCD显示处理结果-角度
                         float angl;
                         if(a<=61440)
                         {
                             angl=(float)a*12/4096;
-                            ui->dis_ang_sdj->display(QString("%1").arg(angl));
                         }
+                        else
+                        {
+                            angl=(float)a-122880*12/4096;
+                        }
+
+                        ui->dis_ang_sdj->display(QString("%1").arg(angl));
                         QTextStream in(&file);
                         in << str_time + " " + "55aa" +" "<< a << " " + erc.toHex() << "\r\n";
                         file.close();
@@ -298,6 +306,20 @@ void PortDialog::Dispose_buf_data()
     }
 
 }
+
+void PortDialog::keyPressEvent(QKeyEvent *event)
+{
+    switch (event->key()) {
+    case Qt::Key_Escape:
+        hide();
+        qDebug()<<QString::fromLocal8Bit("隐藏窗口不关闭");
+        break;
+    default:
+        QDialog::keyPressEvent(event);
+    }
+}
+
+
 
 
 

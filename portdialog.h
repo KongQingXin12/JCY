@@ -18,9 +18,9 @@
 #include "qdatetime.h"
 #include <iostream>
 #include <qtemporaryfile.h>
-#include <Dbt.h>
 #include <Windows.h>
 #include <QFloat16>
+#include <QKeyEvent>
 using namespace std;
 
 namespace Ui {
@@ -54,6 +54,11 @@ private slots:
 
     void Dispose_buf_data();
 
+    void keyPressEvent(QKeyEvent *event);
+
+signals:
+	void Send_Data_To_MainWindow(QString);
+
 private:
     Ui::PortDialog *ui;
     //需要清零
@@ -69,6 +74,7 @@ private:
     QDir *dir=new QDir();
     QFile *file=new QFile();
     QString data_number;
+
 
 
 

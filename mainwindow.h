@@ -9,6 +9,7 @@
 #include <QtCharts/QChartView>
 #include<QtCharts/QLineSeries>
 #include <QtCharts/QSplineSeries>
+#include <QKeyEvent>
 
 using namespace QtCharts;
 
@@ -29,6 +30,10 @@ private slots:
     void on_action_triggered();
 
     void on_create_graph_clicked();
+
+    void Recrive_Data_From_PortDialog(QString receive_data);
+
+
 
 private:
     Ui::MainWindow *ui;

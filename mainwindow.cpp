@@ -1,13 +1,13 @@
 ﻿#include "ui_mainwindow.h"
 #include "mainwindow.h"
 
-
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
     ui->Graph_dis->close();
+	connect(portdialog, SIGNAL(Send_Data_To_MainWindow(QString)), this, SLOT(Recrive_Data_From_PortDialog(QString receive_data)));
 }
 
 MainWindow::~MainWindow()
@@ -21,6 +21,7 @@ void MainWindow::on_action_triggered()
 {
     portdialog=new PortDialog(this);
     portdialog->show();
+
 }
 // 画图代码
 void MainWindow::on_create_graph_clicked()
@@ -55,6 +56,11 @@ void MainWindow::on_create_graph_clicked()
         chart->removeSeries(series);
         ui->create_graph->setText(QString::fromLocal8Bit("创建图表"));
     }
+
+}
+
+void MainWindow::Recrive_Data_From_PortDialog(QString receive_data)
+{
 
 }
 
