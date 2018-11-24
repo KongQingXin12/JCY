@@ -7,9 +7,11 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    //connect(portdialog, SIGNAL(Send_Data_To_MainWindow(QString)), this, SLOT());
-    connect(Polar_chartView,&Polar::Polar_Close_Singal,this,&MainWindow::Recrive_Data_From_PortDialog);
-    connect(Graph_06_chartview,&Graph_06::graph_06_close_signal,this,&MainWindow::Recrive_Data_From_PortDialog);
+    connect(Polar_chartView,&Polar::Polar_Close_Singal,this,&MainWindow::Recrive_Signal_From_ChidrenDialog);
+    connect(Graph_06_chartview,&Graph_06::graph_06_close_signal,this,&MainWindow::Recrive_Signal_From_ChidrenDialog);
+    connect(portdialog,&PortDialog::Send_Data_To_MainWindow,this,&MainWindow::Recrive_Signal_From_ChidrenDialog);
+    connect(portdialog,&PortDialog::Send_Num_Data_To_MainWindow,this,&MainWindow::Recrive_Num_From_ChidrenDialog);
+
 }
 
 MainWindow::~MainWindow()
@@ -21,7 +23,6 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_action_triggered()
 {
-    portdialog=new PortDialog(this);
     portdialog->show();
 
 }
@@ -30,16 +31,22 @@ void MainWindow::on_dis_graph_06_clicked()
 {
     if(ui->dis_graph_06->text()==QString::fromLocal8Bit("创建图表"))
     {
-        series->clear();
-        series->append(0,5);
-        series->append(4,10);
-        series->append(8,6);
-        *series<<QPointF(13,5)<<QPointF(17,6)<<QPointF(20,2);
+        axisX->setRange(0,1000);
+        axisX->setLabelFormat("%g");
+        axisX->setTitleText("axisX");
+
+        axisY->setRange(0,122880);
+        axisY->setTitleText("axisY");
+
+        chart->setAxisX(axisX,series);
+        chart->setAxisY(axisY,series);
 
         chart->legend()->hide();
-        chart->addSeries(series);
-        chart->createDefaultAxes();//图表会自动将之前的坐标轴清除并新建坐标轴
         chart->setTitle("demo");
+
+        chart->addSeries(series);
+        chart->setAnimationOptions(QChart::SeriesAnimations);
+        //chart->createDefaultAxes();//图表会自动将之前的坐标轴清除并新建坐标轴
 
         Graph_06_chartview->setChart(chart);
         Graph_06_chartview->setRenderHint(QPainter::Antialiasing);
@@ -54,47 +61,91 @@ void MainWindow::on_dis_graph_06_clicked()
     }
     else
     {
-       Graph_06_chartview->hide();
+
+       //Graph_06_chartview->close();
         chart->removeSeries(series);
+       // chart->close();
         ui->dis_graph_06->setText(QString::fromLocal8Bit("创建图表"));
     }
 
 }
 
-void MainWindow::Recrive_Data_From_PortDialog(QString temp)
+void MainWindow::Recrive_Signal_From_ChidrenDialog(QString temp)
 {
-
+qDebug()<<temp;
     if(temp=="graph_06")
     {
         ui->dis_graph_06->setText(QString::fromLocal8Bit("创建图表"));
+        series->clear();
+        chart->removeSeries(series);
     }
     else if(temp=="polar_01")
     {
         ui->dis_polar->setText(QString::fromLocal8Bit("创建极坐标"));
     }
+    else if(temp=="port_stop")
+    {
+        Graph_06_chartview->close();
+        ui->dis_graph_06->setText(QString::fromLocal8Bit("创建图表"));
+        series->clear();
+    }
+}
+
+void MainWindow::Recrive_Angle_From_ChidrenDialog(float te)
+{
+
+}
+
+void MainWindow::Recrive_Num_From_ChidrenDialog(QPointF te)
+{
+    series->append(te);
+    //qDebug()<<te.x()<<" "<<te.y();
+    if(te.x()>=1000)
+    {
+        axisX->setRange(te.x()-1000,te.x());
+    }
+
+    static QTime dataTime(QTime::currentTime());
+    long int eltime = dataTime.elapsed();
+    static int lastpointtime = 0;
+    int size = (eltime - lastpointtime);//数据个数
+    //qDebug()<<"size-->"<<size;
+    {
+                QVector<QPointF> oldPoints = series->pointsVector();//Returns the points in the series as a vector
+                QVector<QPointF> points;
+
+                for(int i=size;i<oldPoints.count();++i){
+                    points.append(QPointF(i-size ,oldPoints.at(i).y()));//替换数据用
+                }
+                qint64 sizePoints = points.count();
+                for(int k=0;k<size;++k){
+                    points.append(QPointF(k+sizePoints,te.y()));
+                }
+                series->replace(points);
+                lastpointtime = eltime;
+           }
+
+
 }
 
 void MainWindow::on_dis_polar_clicked()
 {
     if(ui->dis_polar->text()==QString::fromLocal8Bit("创建极坐标"))
     {
-        const qreal angularMin = -100;
-        const qreal angularMax = 100;
+        const qreal angularMin = 0;
+        const qreal angularMax = 360;
 
-        const qreal radialMin = -100;
-        const qreal radialMax = 100;
+        const qreal radialMin = 0;
+        const qreal radialMax = 360;
 
-        QScatterSeries *series1 = new QScatterSeries();
         series1->setName("scatter");
         for (int i = angularMin; i <= angularMax; i += 10)
             series1->append(i, (i / radialMax) * radialMax + 8.0);
 
-        QSplineSeries *series2 = new QSplineSeries();
         series2->setName("spline");
         for (int i = angularMin; i <= angularMax; i += 10)
             series2->append(i, (i / radialMax) * radialMax);
 
-        QLineSeries *series3 = new QLineSeries();
         series3->setName("star outer");
         qreal ad = (angularMax - angularMin) / 8;
         qreal rd = (radialMax - radialMin) / 3 * 1.3;
@@ -108,7 +159,6 @@ void MainWindow::on_dis_polar_clicked()
         series3->append(angularMin + ad*7, radialMin + rd);
         series3->append(angularMin + ad*8, radialMax);
 
-        QLineSeries *series4 = new QLineSeries();
         series4->setName("star inner");
         ad = (angularMax - angularMin) / 8;
         rd = (radialMax - radialMin) / 3;
@@ -122,7 +172,6 @@ void MainWindow::on_dis_polar_clicked()
         series4->append(angularMin + ad*7, radialMin + rd);
         series4->append(angularMin + ad*8, radialMax);
 
-        QAreaSeries *series5 = new QAreaSeries();
         series5->setName("star area");
         series5->setUpperSeries(series3);
         series5->setLowerSeries(series4);
@@ -183,6 +232,11 @@ void MainWindow::on_dis_polar_clicked()
     }
 
 
+
+}
+
+void MainWindow::data_dispose()
+{
 
 }
 

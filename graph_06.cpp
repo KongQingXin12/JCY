@@ -32,9 +32,9 @@ void Graph_06::keyPressEvent(QKeyEvent *event)
     case Qt::Key_Down:
         chart()->scroll(0, -1.0);
         break;
-    case Qt::Key_Space:
-        switchChartType();
-        break;
+//    case Qt::Key_Space:
+//        switchChartType();
+//        break;
     default:
         QGraphicsView::keyPressEvent(event);
         break;
@@ -43,20 +43,8 @@ void Graph_06::keyPressEvent(QKeyEvent *event)
 
 void Graph_06::closeEvent(QCloseEvent *event)
 {
-    QMessageBox::StandardButton close_button;
-        close_button = QMessageBox::question(this, QString::fromLocal8Bit("exit"),
-            QString::fromLocal8Bit("exit?"),
-            QMessageBox::Yes | QMessageBox::No);
-
-        if (close_button == QMessageBox::No) {
-            event->ignore();  //忽略退出信号，程序继续运行
-        }
-        else if (close_button == QMessageBox::Yes)
-        {
-            QString info="graph_06";
-            emit graph_06_close_signal(info);
-            event->accept();  //接受退出信号，程序退出
-        }
+    QString info="graph_06";
+    emit graph_06_close_signal(info);
 
 }
 

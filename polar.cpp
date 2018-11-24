@@ -45,11 +45,12 @@ void Polar::keyPressEvent(QKeyEvent *event)
 void Polar::closeEvent(QCloseEvent *event)
 {
     QMessageBox::StandardButton close_button;
-        close_button = QMessageBox::question(this, QString::fromLocal8Bit("exit"),
-            QString::fromLocal8Bit("exit?"),
+        close_button = QMessageBox::question(this, QString::fromLocal8Bit("退出"),
+            QString::fromLocal8Bit("串口接收信号中"),
             QMessageBox::Yes | QMessageBox::No);
 
         if (close_button == QMessageBox::No) {
+            //emit Polar_Close_Singal("polar_01");
             event->ignore();  //忽略退出信号，程序继续运行
         }
         else if (close_button == QMessageBox::Yes)

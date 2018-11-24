@@ -21,6 +21,8 @@
 #include <Windows.h>
 #include <QFloat16>
 #include <QKeyEvent>
+#include <QPointF>
+#include <QString>
 using namespace std;
 
 namespace Ui {
@@ -32,7 +34,8 @@ class PortDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit PortDialog(QWidget *parent = nullptr);
+    //explicit
+    PortDialog(QWidget *parent = nullptr);
     ~PortDialog();
 
 private slots:
@@ -52,12 +55,16 @@ private slots:
 
     void Search_Serial_Port();
 
-    void Dispose_buf_data();
 
     void keyPressEvent(QKeyEvent *event);
 
 signals:
-	void Send_Data_To_MainWindow(QString);
+    void Send_Data_To_MainWindow(QString te);
+    void Send_Angle_Data_To_MainWindow(float te);
+    void Send_Num_Data_To_MainWindow(QPointF te);
+protected:
+    void Dispose_buf_data();
+
 
 private:
     Ui::PortDialog *ui;
@@ -76,6 +83,7 @@ private:
     QString data_number;
 
 
+    int times=0;
 
 
 

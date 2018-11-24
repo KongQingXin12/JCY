@@ -7,6 +7,7 @@ PortDialog::PortDialog(QWidget *parent) :
 {
     ui->setupUi(this);
     //查找可用串口
+    emit Send_Data_To_MainWindow("111");
     Search_Serial_Port();
     //设置波特率下拉菜单默认显示第三项
     //ui->BaudBox->setCurrentIndex(3);
@@ -90,6 +91,7 @@ void PortDialog::on_open_serial_clicked()
     }
     else if(ui->open_serial->text()==QString::fromLocal8Bit("关闭串口"))
     {
+        emit Send_Data_To_MainWindow("port_close");
        // times++;
         //关闭串口
         serial->clear();
@@ -137,9 +139,16 @@ void PortDialog::on_SendDataButton_clicked()
 void PortDialog::on_save_receive_data_clicked()
 {
     QString temppath=dir->currentPath();
-	qDebug() << temppath;
-    Open_filename=QFileDialog::getExistingDirectory(this,QString::fromLocal8Bit("保存串口数据"),temppath,QFileDialog::ShowDirsOnly|QFileDialog::DontResolveSymlinks);
+    //qDebug() << temppath;
+    QDir temp(temppath);
+    if(!temp.exists("temp"))
+    {
+        temp.mkdir(tr("temp"));
+    }
+    Open_filename= temppath+"/temp";
     Open_filename+="/";
+    qDebug()<<Open_filename;
+        //Open_filename=QFileDialog::getExistingDirectory(this,QString::fromLocal8Bit("保存串口数据"),temppath,QFileDialog::ShowDirsOnly|QFileDialog::DontResolveSymlinks);
 }
 
 bool PortDialog::warrning()
@@ -175,7 +184,7 @@ void PortDialog::Search_Serial_Port()
 		QSerialPort serial;
 		serial.setPort(info);
 		auto a = info.description();
-		qDebug() << a;
+        //qDebug() << a;
 		if (a == QString::fromLocal8Bit("蓝牙链接上的标准串行"))
 		{
 			continue;
@@ -244,6 +253,7 @@ void PortDialog::Dispose_buf_data()
                 {
                     if (data_Check(Check, erc))
                     {
+                        times++;
                         string ss = data.toHex().toStdString();
                         long long a = 0;
                         for (auto i = ss.rbegin(); i !=ss.rend(); i++)
@@ -262,12 +272,20 @@ void PortDialog::Dispose_buf_data()
                         ss=to_string(a);
                         data_number=QString::fromStdString(ss);
                         //显示处理结果
+                        QString info="start";
+                        if(info=="start")
+                        {
+                            //qDebug()<<"11";
+                            emit Send_Data_To_MainWindow(info);
+                        }
+                        emit Send_Num_Data_To_MainWindow(QPointF(times,a));
+
                         ui->Receive_Window->clear();
                         ui->Receive_Window->append(QString::fromStdString(to_string(a)));
                         ui->Receive_Window->append(QString::fromLocal8Bit("校验成功，数据合格"));
                         //LCD显示处理结果-整数
                         ui->dis_num_sdj->display(data_number);
-                        emit Send_Data_To_MainWindow(data_number);
+                        //emit Send_Data_To_MainWindow(data_number);
                         //LCD显示处理结果-角度
                         float angl;
                         if(a<=61440)
@@ -276,10 +294,11 @@ void PortDialog::Dispose_buf_data()
                         }
                         else
                         {
-                            angl=(float)a-122880*12/4096;
+                            angl=((float)a-122880)*12/4096;
                         }
 
                         ui->dis_ang_sdj->display(QString("%1").arg(angl));
+                        emit Send_Angle_Data_To_MainWindow(angl);//将计算好的角度信息实时传递给主窗口
                         QTextStream in(&file);
                         in << str_time + " " + "55aa" +" "<< a << " " + erc.toHex() << "\r\n";
                         file.close();
@@ -304,6 +323,12 @@ void PortDialog::Dispose_buf_data()
             }
         }
     }
+    else if(buf.size()==0)
+    {
+        times=0;
+        ui->Receive_Window->clear();
+        ui->Receive_Window->append(QString::fromLocal8Bit("串口停止发送数据"));
+    }
 
 }
 
@@ -311,8 +336,8 @@ void PortDialog::keyPressEvent(QKeyEvent *event)
 {
     switch (event->key()) {
     case Qt::Key_Escape:
-        hide();
-        qDebug()<<QString::fromLocal8Bit("隐藏窗口不关闭");
+        close();
+        //qDebug()<<QString::fromLocal8Bit("隐藏窗口不关闭");
         break;
     default:
         QDialog::keyPressEvent(event);
