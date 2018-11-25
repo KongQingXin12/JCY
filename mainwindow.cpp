@@ -6,12 +6,16 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    //connect(Polar_chartView,SIGNAL(Polar_Close_Singal),this,SLOT(Recrive_Signal_From_ChidrenDialog));
 
+    /* 极坐标信号与槽 */
     connect(Polar_chartView,&Polar::Polar_Close_Singal,this,&MainWindow::Recrive_Signal_From_ChidrenDialog);
+    /* 曲线坐标信号与槽 */
     connect(Graph_06_chartview,&Graph_06::graph_06_close_signal,this,&MainWindow::Recrive_Signal_From_ChidrenDialog);
+    /* 串口信号与槽 */
     connect(portdialog,&PortDialog::Send_Data_To_MainWindow,this,&MainWindow::Recrive_Signal_From_ChidrenDialog);
     connect(portdialog,&PortDialog::Send_Num_Data_To_MainWindow,this,&MainWindow::Recrive_Num_From_ChidrenDialog);
-
+    connect(portdialog,&PortDialog::Send_Angle_Data_To_MainWindow,this,&MainWindow::Recrive_Angle_From_ChidrenDialog);
 }
 
 MainWindow::~MainWindow()
@@ -31,6 +35,7 @@ void MainWindow::on_dis_graph_06_clicked()
 {
     if(ui->dis_graph_06->text()==QString::fromLocal8Bit("创建图表"))
     {
+
         axisX->setRange(0,1000);
         axisX->setLabelFormat("%g");
         axisX->setTitleText("axisX");
@@ -62,7 +67,7 @@ void MainWindow::on_dis_graph_06_clicked()
     else
     {
 
-       //Graph_06_chartview->close();
+       Graph_06_chartview->close();
         chart->removeSeries(series);
        // chart->close();
         ui->dis_graph_06->setText(QString::fromLocal8Bit("创建图表"));
@@ -91,8 +96,15 @@ qDebug()<<temp;
     }
 }
 
-void MainWindow::Recrive_Angle_From_ChidrenDialog(float te)
+void MainWindow::Recrive_Angle_From_ChidrenDialog(QString signal, float te)
 {
+    if(signal=="start")
+    {
+        if(!qFuzzyCompare(angle,te))
+        {
+            angle=te;
+        }
+    }
 
 }
 
@@ -132,45 +144,59 @@ void MainWindow::on_dis_polar_clicked()
 {
     if(ui->dis_polar->text()==QString::fromLocal8Bit("创建极坐标"))
     {
-        const qreal angularMin = 0;
-        const qreal angularMax = 360;
+        const qreal angularMin = -180;
+        const qreal angularMax = 180;
 
         const qreal radialMin = 0;
-        const qreal radialMax = 360;
+        const qreal radialMax = 100;
 
-        series1->setName("scatter");
-        for (int i = angularMin; i <= angularMax; i += 10)
-            series1->append(i, (i / radialMax) * radialMax + 8.0);
+//        series1->setName("scatter");
+//        for (int i = angularMin; i <= angularMax; i += 10)
+//            series1->append(i, (i / radialMax) * radialMax + 8.0);
 
-        series2->setName("spline");
-        for (int i = angularMin; i <= angularMax; i += 10)
-            series2->append(i, (i / radialMax) * radialMax);
+//        series2->setName("spline");
+//        for (int i = angularMin; i <= angularMax; i += 10)
+//            series2->append(i, (i / radialMax) * radialMax);
 
         series3->setName("star outer");
+
         qreal ad = (angularMax - angularMin) / 8;
         qreal rd = (radialMax - radialMin) / 3 * 1.3;
-        series3->append(angularMin, radialMax);
-        series3->append(angularMin + ad*1, radialMin + rd);
-        series3->append(angularMin + ad*2, radialMax);
-        series3->append(angularMin + ad*3, radialMin + rd);
-        series3->append(angularMin + ad*4, radialMax);
-        series3->append(angularMin + ad*5, radialMin + rd);
-        series3->append(angularMin + ad*6, radialMax);
-        series3->append(angularMin + ad*7, radialMin + rd);
-        series3->append(angularMin + ad*8, radialMax);
+		vector<pair<int, int>>te_series3;
+        series3->append(angularMin, radialMax+10);
+       // series3->append(angularMin,radialMin);
+//		te_series3.push_back(make_pair(angularMin, radialMax));
+       series3->append(angularMin + ad, radialMax+10);
+
+//		te_series3.push_back(make_pair(angularMin + ad * 1, radialMin + rd));
+//        series3->append(angularMin + ad*2, radialMax);
+//		te_series3.push_back(make_pair(angularMin + ad * 2, radialMax));
+//        series3->append(angularMin + ad*3, radialMin + rd);
+//		te_series3.push_back(make_pair(angularMin + ad * 3, radialMin + rd));
+//        series3->append(angularMin + ad*4, radialMax);
+//		te_series3.push_back(make_pair(angularMin + ad * 4, radialMax));
+//        series3->append(angularMin + ad*5, radialMin + rd);
+//		te_series3.push_back(make_pair(angularMin + ad * 5, radialMin + rd));
+//        series3->append(angularMin + ad*6, radialMax);
+//		te_series3.push_back(make_pair(angularMin + ad * 6, radialMax));
+//        series3->append(angularMin + ad*7, radialMin + rd);
+//		te_series3.push_back(make_pair(angularMin + ad * 7, radialMin + rd));
+//        series3->append(angularMin + ad*8, radialMax);
+//		te_series3.push_back(make_pair(angularMin + ad * 8, radialMax));
 
         series4->setName("star inner");
         ad = (angularMax - angularMin) / 8;
         rd = (radialMax - radialMin) / 3;
-        series4->append(angularMin, radialMax);
-        series4->append(angularMin + ad*1, radialMin + rd);
-        series4->append(angularMin + ad*2, radialMax);
-        series4->append(angularMin + ad*3, radialMin + rd);
-        series4->append(angularMin + ad*4, radialMax);
-        series4->append(angularMin + ad*5, radialMin + rd);
-        series4->append(angularMin + ad*6, radialMax);
-        series4->append(angularMin + ad*7, radialMin + rd);
-        series4->append(angularMin + ad*8, radialMax);
+        series4->append(angularMin, radialMax-99);
+  //      series4->append(angularMin+4,radialMin);
+        series4->append(angularMin + ad*1, radialMax-99);
+//        series4->append(angularMin + ad*2, radialMax);
+//        series4->append(angularMin + ad*3, radialMin + rd);
+//        series4->append(angularMin + ad*4, radialMax);
+//        series4->append(angularMin + ad*5, radialMin + rd);
+//        series4->append(angularMin + ad*6, radialMax);
+//        series4->append(angularMin + ad*7, radialMin + rd);
+//        series4->append(angularMin + ad*8, radialMax);
 
         series5->setName("star area");
         series5->setUpperSeries(series3);
@@ -180,8 +206,8 @@ void MainWindow::on_dis_polar_clicked()
         //![1]
         QPolarChart *chart = new QPolarChart();
         //![1]
-        chart->addSeries(series1);
-        chart->addSeries(series2);
+//        chart->addSeries(series1);
+//        chart->addSeries(series2);
         chart->addSeries(series3);
         chart->addSeries(series4);
         chart->addSeries(series5);
@@ -202,10 +228,10 @@ void MainWindow::on_dis_polar_clicked()
         chart->addAxis(radialAxis, QPolarChart::PolarOrientationRadial);
         //![2]
 
-        series1->attachAxis(radialAxis);
-        series1->attachAxis(angularAxis);
-        series2->attachAxis(radialAxis);
-        series2->attachAxis(angularAxis);
+//        series1->attachAxis(radialAxis);
+//        series1->attachAxis(angularAxis);
+//        series2->attachAxis(radialAxis);
+//        series2->attachAxis(angularAxis);
         series3->attachAxis(radialAxis);
         series3->attachAxis(angularAxis);
         series4->attachAxis(radialAxis);

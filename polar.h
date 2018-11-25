@@ -12,7 +12,7 @@ class Polar : public QChartView
 public:
     Polar(QWidget *parent = nullptr);
 signals:
-    void Polar_Close_Singal(QString te);
+    void Polar_Close_Singal(QString te,int te1);
 
 protected:
     void keyPressEvent(QKeyEvent *event);

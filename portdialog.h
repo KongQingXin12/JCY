@@ -60,18 +60,23 @@ private slots:
 
 signals:
     void Send_Data_To_MainWindow(QString te);
-    void Send_Angle_Data_To_MainWindow(float te);
+    void Send_Angle_Data_To_MainWindow(QString signal, float te);
     void Send_Num_Data_To_MainWindow(QPointF te);
+
+
 protected:
     void Dispose_buf_data();
 
 
 private:
     Ui::PortDialog *ui;
+
     //需要清零
-        QByteArray buf,Check,erc,data;
-        int step=0;
-        char te='\x00';
+    QByteArray buf,Check,erc,data;
+    int step=0;
+    char te='\x00';
+    int times=0;
+
     //不需要清零
     QSerialPort *serial;
     QString Save_filename;
@@ -83,7 +88,6 @@ private:
     QString data_number;
 
 
-    int times=0;
 
 
 

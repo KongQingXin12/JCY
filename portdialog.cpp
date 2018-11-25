@@ -298,7 +298,7 @@ void PortDialog::Dispose_buf_data()
                         }
 
                         ui->dis_ang_sdj->display(QString("%1").arg(angl));
-                        emit Send_Angle_Data_To_MainWindow(angl);//将计算好的角度信息实时传递给主窗口
+                        emit Send_Angle_Data_To_MainWindow("start",angl);//将计算好的角度信息实时传递给主窗口
                         QTextStream in(&file);
                         in << str_time + " " + "55aa" +" "<< a << " " + erc.toHex() << "\r\n";
                         file.close();

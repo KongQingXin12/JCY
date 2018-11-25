@@ -44,21 +44,22 @@ void Polar::keyPressEvent(QKeyEvent *event)
 
 void Polar::closeEvent(QCloseEvent *event)
 {
-    QMessageBox::StandardButton close_button;
-        close_button = QMessageBox::question(this, QString::fromLocal8Bit("退出"),
-            QString::fromLocal8Bit("串口接收信号中"),
-            QMessageBox::Yes | QMessageBox::No);
+    QString info="polar_01";
+    emit Polar_Close_Singal(info,0);
+//    QMessageBox::StandardButton close_button;
+//        close_button = QMessageBox::question(this, QString::fromLocal8Bit("退出"),
+//            QString::fromLocal8Bit("串口接收信号中"),
+//            QMessageBox::Yes | QMessageBox::No);
 
-        if (close_button == QMessageBox::No) {
-            //emit Polar_Close_Singal("polar_01");
-            event->ignore();  //忽略退出信号，程序继续运行
-        }
-        else if (close_button == QMessageBox::Yes)
-        {
-            QString info="polar_01";
-            emit Polar_Close_Singal(info);
-            event->accept();  //接受退出信号，程序退出
-        }
+//        if (close_button == QMessageBox::No) {
+//            //emit Polar_Close_Singal("polar_01");
+//            event->ignore();  //忽略退出信号，程序继续运行
+//        }
+//        else if (close_button == QMessageBox::Yes)
+//        {
+
+//            event->accept();  //接受退出信号，程序退出
+//        }
 
 }
 
