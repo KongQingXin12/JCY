@@ -4,9 +4,8 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
-QT       += serialport
-QT       += charts
+QT       += core gui charts serialport qml quick
+
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = JCY
@@ -41,3 +40,9 @@ HEADERS += \
 FORMS += \
         mainwindow.ui \
     portdialog.ui
+
+DISTFILES += \
+    qml_temp/view1.qml
+
+RESOURCES += \
+    resources.qrc

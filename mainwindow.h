@@ -8,6 +8,12 @@
 #include <QMainWindow>
 #include <QKeyEvent>
 #include <QCloseEvent>
+#include <QPaintEvent>
+#include <QtWidgets/QApplication>
+#include <QtQuick/QQuickView>
+#include <QtCore/QDir>
+#include <QtQml/QQmlEngine>
+#include <QQmlContext>
 
 
 using namespace QtCharts;
@@ -20,9 +26,19 @@ class MainWindow;
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
+    Q_PROPERTY(float val READ getAngle WRITE changeAngle NOTIFY sendAngle)
 
 public:
     explicit MainWindow(QWidget *parent = nullptr);
+    float getAngle() const{return angle;};
+    void changeAngle(const float &val)
+    {
+        if(angle!=val)
+        {
+            angle=val;
+            emit sendAngle(angle);
+        }
+    }
     ~MainWindow();
 
 private slots:
@@ -40,6 +56,9 @@ private slots:
     void on_dis_polar_clicked();
 
     void data_dispose();
+
+    void on_pushButton_clicked();
+
 
 private:
     Ui::MainWindow *ui;
@@ -66,12 +85,17 @@ private:
     QAreaSeries *series5 = new QAreaSeries();
 
 
+    QQuickView viewer;
+
+
     /* 接收数据 */
     float angle=0;
 signals:
+    void sendAngle(int val);
     //void close_graph(bool);
 protected:
     void closeEvent(QCloseEvent *event);
+    void paintEvent(QPaintEvent *event);
 };
 
 #endif // MAINWINDOW_H

@@ -1,6 +1,7 @@
 ﻿#include "ui_mainwindow.h"
 #include "mainwindow.h"
 
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
@@ -279,6 +280,96 @@ void MainWindow::closeEvent(QCloseEvent *event)
         else if (button == QMessageBox::Yes) {
             event->accept();  //接受退出信号，程序退出
         }
+
+}
+
+void MainWindow::paintEvent(QPaintEvent *event)
+{
+
+
+    /* 绘制第一个圆环 */
+	QPainter painter1(this);
+	painter1.begin(this);
+	painter1.setRenderHint(QPainter::Antialiasing);//设置圆滑绘制风格（抗锯齿）
+   //绘制圆环
+	float m_persent1 = angle;//此处我画80%
+	int m_rotateAngle1 = 270 * (1 - m_persent1 / 100);
+	int side1 = qMin(width(), height());
+	//定义矩形绘制区域
+	QRectF outRect1(50, 80, 200, 200);
+	QRectF inRect1(70, 100, 200 - 40, 200 - 40);
+	//转换需要绘出的值
+	QString valueStr1 = QString("%1%").arg(QString::number(m_persent1));
+
+	//画外圆
+	painter1.setPen(Qt::NoPen);
+	painter1.setBrush(QBrush(QColor(255, 107, 107)));//红色
+	painter1.drawPie(outRect1, -30 * 16, 240 * 16);
+	//画内圆
+	painter1.setBrush(QBrush(QColor(97, 117, 118)));//黑色
+	painter1.drawPie(outRect1, -30 * 16, m_rotateAngle1 * 16);
+	//画遮罩，遮罩颜色为窗口颜色
+	painter1.setBrush(palette().window().color());
+	painter1.drawEllipse(inRect1);
+	//画文字
+	QFont f1 = QFont("Microsoft YaHei", 15, QFont::Bold);
+	painter1.setFont(f1);
+	painter1.setFont(f1);
+	painter1.setPen(QColor("#555555"));
+	painter1.drawText(inRect1, Qt::AlignCenter, valueStr1);
+	painter1.end();
+
+	/* 绘制第二个圆环 */
+	QPainter painter2(this);
+	painter2.begin(this);
+	painter2.setRenderHint(QPainter::Antialiasing);//设置圆滑绘制风格（抗锯齿）
+//绘制圆环
+	float m_persent2 = angle;//此处我画80%
+	int m_rotateAngle2 = 270 * (1 - m_persent2 / 100);
+	int side2 = qMin(width(), height());
+	//定义矩形绘制区域
+	QRectF outRect2(50, 280, 200, 200);
+	QRectF inRect2(70, 300, 200 - 40, 200 - 40);
+	//转换需要绘出的值
+	QString valueStr2 = QString("%1%").arg(QString::number(m_persent2));
+
+	//画外圆
+	painter2.setPen(Qt::NoPen);
+	painter2.setBrush(QBrush(QColor(255, 107, 107)));//红色
+	painter2.drawPie(outRect2, -30 * 16, 240 * 16);
+	//画内圆
+	painter2.setBrush(QBrush(QColor(97, 117, 118)));//黑色
+	painter2.drawPie(outRect2, -30 * 16, m_rotateAngle2 * 16);
+	//画遮罩，遮罩颜色为窗口颜色
+	painter2.setBrush(palette().window().color());
+	painter2.drawEllipse(inRect2);
+	//画文字
+	QFont f2 = QFont("Microsoft YaHei", 15, QFont::Bold);
+	painter2.setFont(f2);
+	painter2.setFont(f2);
+	painter2.setPen(QColor("#555555"));
+	painter2.drawText(inRect2, Qt::AlignCenter, valueStr2);
+	painter2.end();
+}
+
+
+
+
+void MainWindow::on_pushButton_clicked()
+{
+#ifdef Q_OS_WIN
+    QString extraImportPath(QStringLiteral("%1/../../../../%2"));
+#else
+    QString extraImportPath(QStringLiteral("%1/../../../%2"));
+#endif
+    viewer.engine()->addImportPath(extraImportPath.arg(QGuiApplication::applicationDirPath(),         QString::fromLatin1("qml")));
+    QObject::connect(viewer.engine(), &QQmlEngine::quit, &viewer, &QWindow::close);
+    MainWindow mw;
+    viewer.engine()->rootContext()->setContextProperty("mw", &mw);
+    viewer.setTitle(QStringLiteral("QML Chart"));
+    viewer.setSource(QUrl::fromLocalFile("JCY/qml_temp/view1.qml"));
+    viewer.setResizeMode(QQuickView::SizeRootObjectToView);
+    viewer.show();
 
 }
 
