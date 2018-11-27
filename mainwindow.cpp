@@ -293,7 +293,7 @@ void MainWindow::paintEvent(QPaintEvent *event)
 	painter1.setRenderHint(QPainter::Antialiasing);//设置圆滑绘制风格（抗锯齿）
    //绘制圆环
 	float m_persent1 = angle;//此处我画80%
-	int m_rotateAngle1 = 270 * (1 - m_persent1 / 100);
+    int m_rotateAngle1 = 180* (1 - m_persent1 / 100);
 	int side1 = qMin(width(), height());
 	//定义矩形绘制区域
 	QRectF outRect1(50, 80, 200, 200);
@@ -304,10 +304,10 @@ void MainWindow::paintEvent(QPaintEvent *event)
 	//画外圆
 	painter1.setPen(Qt::NoPen);
 	painter1.setBrush(QBrush(QColor(255, 107, 107)));//红色
-	painter1.drawPie(outRect1, -30 * 16, 240 * 16);
+    painter1.drawPie(outRect1, 0 * 16, 180 * 16);
 	//画内圆
 	painter1.setBrush(QBrush(QColor(97, 117, 118)));//黑色
-	painter1.drawPie(outRect1, -30 * 16, m_rotateAngle1 * 16);
+    painter1.drawPie(outRect1, 0 * 16, m_rotateAngle1 * 16);
 	//画遮罩，遮罩颜色为窗口颜色
 	painter1.setBrush(palette().window().color());
 	painter1.drawEllipse(inRect1);
@@ -325,7 +325,7 @@ void MainWindow::paintEvent(QPaintEvent *event)
 	painter2.setRenderHint(QPainter::Antialiasing);//设置圆滑绘制风格（抗锯齿）
 //绘制圆环
 	float m_persent2 = angle;//此处我画80%
-	int m_rotateAngle2 = 270 * (1 - m_persent2 / 100);
+    int m_rotateAngle2 = 180 * (1 - m_persent2 / 100);
 	int side2 = qMin(width(), height());
 	//定义矩形绘制区域
 	QRectF outRect2(50, 280, 200, 200);
@@ -336,10 +336,10 @@ void MainWindow::paintEvent(QPaintEvent *event)
 	//画外圆
 	painter2.setPen(Qt::NoPen);
 	painter2.setBrush(QBrush(QColor(255, 107, 107)));//红色
-	painter2.drawPie(outRect2, -30 * 16, 240 * 16);
+    painter2.drawPie(outRect2, 0 * 16, 180 * 16);
 	//画内圆
 	painter2.setBrush(QBrush(QColor(97, 117, 118)));//黑色
-	painter2.drawPie(outRect2, -30 * 16, m_rotateAngle2 * 16);
+    painter2.drawPie(outRect2, 0 * 16, m_rotateAngle2 * 16);
 	//画遮罩，遮罩颜色为窗口颜色
 	painter2.setBrush(palette().window().color());
 	painter2.drawEllipse(inRect2);

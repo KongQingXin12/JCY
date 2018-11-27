@@ -1,6 +1,9 @@
 ﻿#ifndef PORTDIALOG_H
 #define PORTDIALOG_H
 
+#include <QColor>
+#include <QTimer>
+#include <QPainter>
 #include <QDialog>
 #include <QDebug>
 #include <QMessageBox>
@@ -13,7 +16,7 @@
 #include <QtSerialPort/QSerialPort>
 #include <QtSerialPort/QSerialPortInfo>
 #include <QTime>
-#include<QtWidgets/QTimeEdit>
+#include <QtWidgets/QTimeEdit>
 #include <QDateTime>
 #include "qdatetime.h"
 #include <iostream>
@@ -23,6 +26,7 @@
 #include <QKeyEvent>
 #include <QPointF>
 #include <QString>
+#include <QPaintEvent>
 using namespace std;
 
 namespace Ui {
@@ -34,20 +38,27 @@ class PortDialog : public QDialog
     Q_OBJECT
 
 public:
-    //explicit
-    PortDialog(QWidget *parent = nullptr);
+
+    explicit PortDialog(QWidget *parent = nullptr);
+    bool evenFilter(QObject *obj,QEvent *event);
     ~PortDialog();
 
-private slots:
-    void on_open_serial_clicked();
+public slots:
+    void handleTimeout();
 
-    void Read_Data();
+private slots:
+    /* UI 函数 */
+    void on_open_serial_clicked();
 
     void on_ClearDataButton_clicked();
 
     void on_SendDataButton_clicked();
 
     void on_save_receive_data_clicked();
+
+    /* 自定义函数 */
+
+    void Read_Data();
 
     bool warrning();
 
@@ -56,7 +67,8 @@ private slots:
     void Search_Serial_Port();
 
 
-    void keyPressEvent(QKeyEvent *event);
+
+    void on_refresh_serial_port_clicked();
 
 signals:
     void Send_Data_To_MainWindow(QString te);
@@ -65,8 +77,10 @@ signals:
 
 
 protected:
+    void keyPressEvent(QKeyEvent *event);
     void Dispose_buf_data();
-
+    void Draw_Sector();
+    void paintEvent(QPaintEvent *event);
 
 private:
     Ui::PortDialog *ui;
@@ -87,9 +101,9 @@ private:
     QFile *file=new QFile();
     QString data_number;
 
+    float angle=0;
 
-
-
+    QTimer *UpdatePainterTimer;
 
 };
 

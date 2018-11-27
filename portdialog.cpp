@@ -1,27 +1,56 @@
 ﻿#include "portdialog.h"
 #include "ui_portdialog.h"
 
+bool FlickerFlag = false;
+qint8 HoleUpdataPattern =1;
+
+
 PortDialog::PortDialog(QWidget *parent) :
-    QDialog(parent,Qt::WindowTitleHint|Qt::CustomizeWindowHint),
-    ui(new Ui::PortDialog)
+    QDialog(parent),
+    ui(new Ui::PortDialog)//,Qt::WindowTitleHint|Qt::CustomizeWindowHint
 {
     ui->setupUi(this);
+    ui->sector_dis->installEventFilter(this);
+    UpdatePainterTimer =new QTimer;
+    UpdatePainterTimer->setInterval(500);
+    connect(UpdatePainterTimer,&QTimer::timeout,this,&PortDialog::handleTimeout);
+    UpdatePainterTimer->start();
+
     //查找可用串口
-    emit Send_Data_To_MainWindow("111");
+    //emit Send_Data_To_MainWindow("111");
     Search_Serial_Port();
     //设置波特率下拉菜单默认显示第三项
     //ui->BaudBox->setCurrentIndex(3);
     ui->dis_num_sdj->setPalette(Qt::white);
     ui->dis_ang_sdj->setPalette(Qt::white);
     //关闭发送按钮使能
+
     ui->SendDataButton->setEnabled(false);
     qDebug()<<QString::fromLocal8Bit("界面设定成功");
     qDebug()<<QString::fromLocal8Bit("搜寻串口成功");
 }
 
+bool PortDialog::evenFilter(QObject *obj, QEvent *event)
+{
+//    if(/*obj==ui->sector_dis&&*/event->type()==QEvent::Paint)
+//    {
+//        //Draw_Sector();
+//    }
+    if(/*obj==ui->sector_dis&&*/event->type()==QEvent::Timer)
+    {
+        handleTimeout();
+    }
+    return QWidget::eventFilter(obj,event);
+}
+
 PortDialog::~PortDialog()
 {
     delete ui;
+}
+
+void PortDialog::handleTimeout()
+{
+    ui->sector_dis->update();
 }
 
 
@@ -287,18 +316,19 @@ void PortDialog::Dispose_buf_data()
                         ui->dis_num_sdj->display(data_number);
                         //emit Send_Data_To_MainWindow(data_number);
                         //LCD显示处理结果-角度
-                        float angl;
+
                         if(a<=61440)
                         {
-                            angl=(float)a*12/4096;
+                            angle=(float)a*12/4096;
                         }
                         else
                         {
-                            angl=((float)a-122880)*12/4096;
+                            angle=((float)a-122880)*12/4096;
                         }
 
-                        ui->dis_ang_sdj->display(QString("%1").arg(angl));
-                        emit Send_Angle_Data_To_MainWindow("start",angl);//将计算好的角度信息实时传递给主窗口
+                        ui->dis_ang_sdj->display(QString("%1").arg(angle));
+                        emit Send_Angle_Data_To_MainWindow("start",angle);//将计算好的角度信息实时传递给主窗口
+                        Draw_Sector();
                         QTextStream in(&file);
                         in << str_time + " " + "55aa" +" "<< a << " " + erc.toHex() << "\r\n";
                         file.close();
@@ -332,6 +362,76 @@ void PortDialog::Dispose_buf_data()
 
 }
 
+void PortDialog::Draw_Sector()
+{
+//    /* 绘制第一个圆环 */
+//    QPainter painter1(this);
+//    painter1.begin(this);
+//    painter1.setRenderHint(QPainter::Antialiasing);//设置圆滑绘制风格（抗锯齿）
+//   //绘制圆环
+//    float m_persent1 = angle;//此处我画80%
+//    int m_rotateAngle1 = 180* (1 - m_persent1 / 100);
+//    //int side1 = qMin(width(), height());
+//    //定义矩形绘制区域
+//    QRectF outRect1(50, 80, 200, 200);
+//    QRectF inRect1(70, 100, 200 - 40, 200 - 40);
+//    //转换需要绘出的值
+//    QString valueStr1 = QString("%1%").arg(QString::number(m_persent1));
+
+//    //画外圆
+//    painter1.setPen(Qt::NoPen);
+//    painter1.setBrush(QBrush(QColor(255, 107, 107)));//红色
+//    painter1.drawPie(outRect1, 0 * 16, 180 * 16);
+//    //画内圆
+//    painter1.setBrush(QBrush(QColor(97, 117, 118)));//黑色
+//    painter1.drawPie(outRect1, 0 * 16, m_rotateAngle1 * 16);
+//    //画遮罩，遮罩颜色为窗口颜色
+//    painter1.setBrush(palette().window().color());
+//    painter1.drawEllipse(inRect1);
+//    //画文字
+//    QFont f1 = QFont("Microsoft YaHei", 15, QFont::Bold);
+//    painter1.setFont(f1);
+//    painter1.setFont(f1);
+//    painter1.setPen(QColor("#555555"));
+//    painter1.drawText(inRect1, Qt::AlignCenter, valueStr1);
+//    painter1.end();
+}
+
+void PortDialog::paintEvent(QPaintEvent *event)
+{
+    /* 绘制第一个圆环 */
+    QPainter painter1(this);
+    painter1.begin(this);
+    painter1.setRenderHint(QPainter::Antialiasing);//设置圆滑绘制风格（抗锯齿）
+   //绘制圆环
+    float m_persent1 = angle+90;//此处我画80%
+    int m_rotateAngle1 = 180* (1 - m_persent1 / 180);
+    //int side1 = qMin(width(), height());
+    //定义矩形绘制区域
+    QRectF outRect1(50, 80, 200, 200);
+    QRectF inRect1(70, 100, 200 - 40, 200 - 40);
+    //转换需要绘出的值
+    QString valueStr1 = QString("%1").arg(QString::number(angle));
+
+    //画外圆
+    painter1.setPen(Qt::NoPen);
+    painter1.setBrush(QBrush(QColor(255, 107, 107)));//红色
+    painter1.drawPie(outRect1, 0 * 16, 180 * 16);
+    //画内圆
+    painter1.setBrush(QBrush(QColor(97, 117, 118)));//黑色
+    painter1.drawPie(outRect1, 0 * 16, m_rotateAngle1 * 16);
+    //画遮罩，遮罩颜色为窗口颜色
+    painter1.setBrush(palette().window().color());
+    painter1.drawEllipse(inRect1);
+    //画文字
+    QFont f1 = QFont("Microsoft YaHei", 15, QFont::Bold);
+    painter1.setFont(f1);
+    painter1.setFont(f1);
+    painter1.setPen(QColor("#555555"));
+    painter1.drawText(inRect1, Qt::AlignCenter, valueStr1);
+    painter1.end();
+}
+
 void PortDialog::keyPressEvent(QKeyEvent *event)
 {
     switch (event->key()) {
@@ -344,10 +444,7 @@ void PortDialog::keyPressEvent(QKeyEvent *event)
     }
 }
 
-
-
-
-
-
-
-
+void PortDialog::on_refresh_serial_port_clicked()
+{
+    Search_Serial_Port();
+}
